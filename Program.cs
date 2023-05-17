@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -183,12 +184,25 @@ namespace Coiling_Batching
             Console.WriteLine("----Oj----");*/
 
 
-            /*for (int k = 0; k < N; k++)
+           
+            for(int k = 0; k < N; k++)
             {
-                Rk[k] = random.Next(N);
-            }*/
+                int len=random.Next(1, N - 1);
+                Rk[k]=new int[len];
+                for(int n=0;n< len; n++)
+                {
+                    List<int> num2 = new List<int>();
+                    int temp = random.Next(N);
+                    if (temp != k && !num2.Contains(temp))
+                    {
+                        num2.Add(temp);
+                        Rk[k][n] = temp;
+                    }
+                }
+            }
 
-            for (int k = 0; k < N; k++)
+
+           /* for (int k = 0; k < N; k++)
             {               
                 int num = random.Next(N - 1);//随机生成可以和k一批的数量
                 Rk[k] = new int[num];
@@ -199,6 +213,13 @@ namespace Coiling_Batching
                     {
                         Rk[k][n] = temp;//可以和k一起的coil的index
                     }
+                }
+            }*/
+            for(int k = 0; k < Rk.Length; k++)
+            {
+                for(int n = 0;n < Rk[k].Length; n++)
+                {
+                    Console.WriteLine("Rk[{0}][{1}]={2}", k, n, Rk[k][n]);
                 }
             }
 
@@ -292,8 +313,7 @@ namespace Coiling_Batching
                 for (int k = 0; k < N; k++)
                 {
                     cost2[i][k] = random.Next(C2_MAX);
-                }
-                
+                }               
             }
             #endregion
         }
@@ -329,8 +349,42 @@ namespace Coiling_Batching
             }
 
             //obj
+            //INumExpr obj = model.NumExpr();
+            INumExpr[] obj=new INumExpr[10];
+            obj[0] = model.NumExpr();
+            obj[1] = model.NumExpr();
+            obj[2] = model.NumExpr();
+            
+            for (int j = 0; j < F; j++)
+            {
+                for(int i0 = 0; i0 < Oj[j].Length; i0++)
+                {
+                    int i = Oj[j][i0];
+                    obj[0] = model.Sum(obj[0], model.Prod(Fi[i], x_ij[i][j]));
+                    obj[1] = model.Sum(obj[1], model.Prod(cost1[i][j], x_ij[i][j]));
+
+                    for(int k0 = 0; k0 < Rk[i].Length; k0++)
+                    {
+                        int k= Rk[i][k0];
+                        if (i == k)
+                        {
+                            obj[2] = model.Sum(obj[2], model.Prod(cost2[i][k], y_ikj[i][k][j]));
+
+                        }
+                    }
+                }
+            }
+
+            model.AddMaximize(model.Diff(obj[0], model.Sum(obj[0], obj[1])));
+
+            
+
+
+
 
             //st
+
+            //1
             if (1 == 1)
             {
                 INumExpr[] expr1 = new INumExpr[10];
@@ -344,27 +398,87 @@ namespace Coiling_Batching
                     model.AddLe(expr1[0], 1);
                 }
             }
-
+            
+            //2
             if (0 == 0)
             {
                 INumExpr[] expr2= new INumExpr[10];
                 for(int j = 0; j < F; j++)
                 {
                     expr2[0] = model.NumExpr();
-                    for(int i=0;i<Oj.Length;i++)
+                    for(int i = 0; i < Oj[j].Length;i++)
                     {
+                        expr2[0] = model.Sum(expr2[0], model.Prod(hi[Oj[j][i]], x_ij[Oj[j][i]][j]));
+                    }
+                }
+                model.AddLe(expr2[0], H);
 
+            }
+            //3
+            if (3 == 3)
+            {
+                INumExpr[] expr3 = new INumExpr[10];
+                for(int j=0; j < F; j++)
+                {
+                    expr3[0] = model.NumExpr();
+                    for(int k = 0; k < Oj[j].Length; k++)
+                    {
+                        expr3[0] = model.Sum(expr3[0], y_ikj[Oj[j][k]][Oj[j][k]][j]);
+                    }
+                }
+                model.AddEq(expr3[0], 1);   
+            }
+
+            //4
+            if (4 == 4)
+            {
+                for (int j = 0; j < F; j++)//j属于P
+                {
+                    for (int k0 = 0; k0 < Oj[j].Length; k0++)//k属于Oj ,Oj[i][j]为coil的index                       
+                    {
+                        int k = Oj[j][k0];
+                        for (int i0 = 0; i0 < Rk.Length; i0++)
+                        {
+                            for(int i1=0;i1< Rk[i1].Length; i1++)//Rk[i][j]为coil的index
+                            {
+                                int i = Rk[i0][i1];
+                                if (i== k)//如果i属于Oj∪Rk
+                                {                                   
+                                    model.AddLe(y_ikj[i][k][j], y_ikj[k][k][j]);
+                                }
+                            }
+                        }
                     }
 
                 }
 
             }
 
+            //5
+            if (5 == 5)
+            {
+                INumExpr[] expr5=new INumExpr[6];
+                for(int j = 0; j < F; j++)//j属于P
+                {
+                    for(int i0 = 0; i0 < Oj[j].Length; i0++)
+                    {
+                        int i = Oj[j][i0];//i属于Oj
+                        expr5[0] = model.NumExpr();                       
+                        for(int k0=0; k0 < Rk[i].Length; k0++)
+                        {
+                            int k = Rk[i0][k0];
+                            if (i == k)//k属于Oj∪Ri
+                            {
+                                expr5[0] = model.Sum(expr5[0], y_ikj[i][k][j]);
+                            }
+                        }
+                        model.AddEq(x_ij[i][j], expr5[0]);
+                    }
+                }
 
+            }
 
-
-
-
+           
         }
     }
 }
